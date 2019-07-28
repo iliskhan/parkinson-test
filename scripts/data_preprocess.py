@@ -7,35 +7,25 @@ from keras.preprocessing.sequence import pad_sequences
 
 from sklearn.utils import shuffle
 
-def sliding_window(arr, len_window):
-	new_set = []
-	arr = arr.T
+len_train_set = 16
 
-	
-	for i in arr:
-		for j in range(len(i)-len_window):
-			new_set.append(i[j:j+len_window])
-	new_set = np.array(new_set)
-	print(new_set.shape)
 
-def fill_arr(arr, filled_arr, slice=0):
+def sliding_window(tensor, labels, len_window):
+	out_tensor = []
+	out_labels = []
 
-	arr_counter = 0
+	for idx, matrix in enumerate(tensor):
 
-	if slice == 0:
-		for i in range(0, filled_arr.shape[0], 5):
-			for j in range(5):
-				filled_arr[i+j] = arr[arr_counter]
-			arr_counter+=1
+		for j in range(matrix.shape[0] - len_window):
 
-	else:
-		for i in range(0, filled_arr.shape[0], 5):
-			for j in range(5):
-				filled_arr[i+j] = arr[arr_counter, j*slice:(1+j)*slice]
-			arr_counter+=1
+			out_tensor.append(matrix[j:j+len_window])
+			out_labels.append(labels[idx])
+			
 
-	return filled_arr
+	out_tensor = np.array(out_tensor)
+	out_labels = np.array(out_labels)
 
+	return out_tensor, out_labels
 
 
 def data_collect(data_folder, label):
@@ -49,10 +39,8 @@ def data_collect(data_folder, label):
 		array = file[['x','y','z']].to_numpy()
 		temp_arr = np.linalg.norm(array, axis=-1, keepdims=True)
 		temp_arr = temp_arr.reshape(-1, 20)
-
-		new_arr = sliding_window(temp_arr, 200)
 		
-		if i < 16:
+		if i < len_train_set:
 			train_x.append(temp_arr)
 			train_y.append(label)
 
@@ -75,24 +63,18 @@ test_y = []
 data_collect(ctrl,0)
 data_collect(prksn,1)
 
-train_x, train_y = pad_sequences(train_x, maxlen=300), np.array(train_y)
+train_x, train_y = np.array(train_x), np.array(train_y)
+test_x, test_y = np.array(test_x), np.array(test_y)
 
-test_x, test_y = pad_sequences(test_x, maxlen=300), np.array(test_y)
+train_x, train_y = sliding_window(train_x, train_y, len_window=200)
+test_x, test_y = sliding_window(test_x, test_y, len_window=200)
+
+# train_x, train_y = pad_sequences(train_x, maxlen=300), np.array(train_y)
+
+# test_x, test_y = pad_sequences(test_x, maxlen=300), np.array(test_y)
 
 train_x, train_y = shuffle(train_x, train_y)
 test_x, test_y = shuffle(test_x, test_y)
-
-# augment_train_x = np.zeros((train_x.shape[0]*5, max_val//5, 20))
-# augment_test_x = np.zeros((test_x.shape[0]*5, max_val//5, 20))
-
-# augment_train_y = np.zeros((train_y.shape[0]*5))
-# augment_test_y = np.zeros((test_y.shape[0]*5))
-
-# augment_train_x = fill_arr(train_x, augment_train_x, max_val//5)
-# augment_test_x = fill_arr(test_x, augment_test_x, max_val//5)
-
-# augment_train_y = fill_arr(train_y, augment_train_y)
-# augment_test_y = fill_arr(test_y, augment_test_y)
 
 print('train_x', train_x.shape)
 print('test_x', test_x.shape)
@@ -100,4 +82,4 @@ print('test_x', test_x.shape)
 print('train_y', train_y.shape)
 print('test_y', test_y.shape)
 
-#np.save(f'{destination}/tensor5', np.array((train_x, train_y, test_x, test_y)))
+np.save(f'{destination}/tensor6', np.array((train_x, train_y, test_x, test_y)))
