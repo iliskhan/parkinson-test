@@ -7,8 +7,13 @@ from keras.preprocessing.sequence import pad_sequences
 
 from sklearn.utils import shuffle
 
-len_train_set = 16
+len_window = 100
 
+def label_check(labels):
+
+	unique, counts = np.unique(labels, return_counts=True)
+	quantity = dict(zip(unique, counts))
+	return quantity
 
 def sliding_window(tensor, labels, len_window):
 	out_tensor = []
@@ -16,11 +21,13 @@ def sliding_window(tensor, labels, len_window):
 
 	for idx, matrix in enumerate(tensor):
 
-		for j in range(matrix.shape[0] - len_window):
+		timesteps = matrix.shape[0]
 
-			out_tensor.append(matrix[j:j+len_window])
-			out_labels.append(labels[idx])
-			
+		if timesteps >= len_window:
+			for j in range(matrix.shape[0] - len_window):
+
+				out_tensor.append(matrix[j:j+len_window])
+				out_labels.append(labels[idx])		
 
 	out_tensor = np.array(out_tensor)
 	out_labels = np.array(out_labels)
@@ -28,7 +35,7 @@ def sliding_window(tensor, labels, len_window):
 	return out_tensor, out_labels
 
 
-def data_collect(data_folder, label):
+def data_collect(x, y, data_folder, label):
 
 	file_names = os.listdir(data_folder)
 
@@ -40,13 +47,10 @@ def data_collect(data_folder, label):
 		temp_arr = np.linalg.norm(array, axis=-1, keepdims=True)
 		temp_arr = temp_arr.reshape(-1, 20)
 		
-		if i < len_train_set:
-			train_x.append(temp_arr)
-			train_y.append(label)
+		x.append(temp_arr)
+		y.append(label)
 
-		else:
-			test_x.append(temp_arr)
-			test_y.append(label)
+	return x, y
 
 
 
@@ -54,32 +58,39 @@ ctrl = '../data/processed_ctrl'
 prksn = '../data/processed_prksn'
 destination = '../data/tensors'
 
-train_x = []
-train_y = []
+x = []
+y = []
 
-test_x = []
-test_y = []
+x, y = data_collect(x, y, ctrl, 0)
+x, y = data_collect(x, y, prksn, 1)
 
-data_collect(ctrl,0)
-data_collect(prksn,1)
+x, y = np.array(x), np.array(y)
 
-train_x, train_y = np.array(train_x), np.array(train_y)
-test_x, test_y = np.array(test_x), np.array(test_y)
+x, y = shuffle(x, y)
 
-train_x, train_y = sliding_window(train_x, train_y, len_window=200)
-test_x, test_y = sliding_window(test_x, test_y, len_window=200)
+x, y = sliding_window(x, y, len_window=len_window)
 
+quantity = label_check(y)
+
+len_train_set = int(len(x) * 0.9)
+
+train_x, train_y = x[:len_train_set], y[:len_train_set]
+test_x, test_y = x[len_train_set:], y[len_train_set:]
 # train_x, train_y = pad_sequences(train_x, maxlen=300), np.array(train_y)
-
 # test_x, test_y = pad_sequences(test_x, maxlen=300), np.array(test_y)
 
-train_x, train_y = shuffle(train_x, train_y)
-test_x, test_y = shuffle(test_x, test_y)
+print(f"Длина окна = {len_window}")
+print()
+
+print(f"Здоровых = {quantity[0]}")
+print(f"Больных = {quantity[1]}")
+print()
 
 print('train_x', train_x.shape)
+print('train_y', label_check(train_y))
+print()
+
 print('test_x', test_x.shape)
+print('test_y', label_check(test_y))
 
-print('train_y', train_y.shape)
-print('test_y', test_y.shape)
-
-np.save(f'{destination}/tensor6', np.array((train_x, train_y, test_x, test_y)))
+np.save(f'{destination}/tensor_window={len_window}', np.array((train_x, train_y, test_x, test_y)))
