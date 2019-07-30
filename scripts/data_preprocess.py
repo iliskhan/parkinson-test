@@ -3,17 +3,54 @@ import os
 import numpy as np 
 import pandas as pd 
 
-from keras.preprocessing.sequence import pad_sequences
-
 from sklearn.utils import shuffle
 
-len_window = 100
+len_window = 150
+
+def distributor(x, y, len_train_set):
+
+	train_x, train_y = [], []
+	test_x, test_y = [], []
+
+	quantity = label_check(y)
+
+	min_val = min(quantity.values())
+
+	len_train_set = int(min_val * len_train_set)
+
+	pos_label = 0
+	neg_label = 0
+
+	for idx, sample in enumerate(x):
+
+		label = y[idx]
+
+		if label == 0 and neg_label < len_train_set:
+
+			neg_label += 1
+			train_x.append(sample)
+			train_y.append(label)
+
+		elif label == 1 and pos_label < len_train_set:
+			
+			pos_label += 1
+			train_x.append(sample)
+			train_y.append(label)
+		
+		else:
+
+			test_x.append(sample)
+			test_y.append(label)
+
+	return (np.array(i) for i in [train_x, train_y, test_x, test_y])
+
 
 def label_check(labels):
-
 	unique, counts = np.unique(labels, return_counts=True)
 	quantity = dict(zip(unique, counts))
+	
 	return quantity
+
 
 def sliding_window(tensor, labels, len_window):
 	out_tensor = []
@@ -72,13 +109,9 @@ x, y = sliding_window(x, y, len_window=len_window)
 
 quantity = label_check(y)
 
-len_train_set = int(len(x) * 0.9)
+train_x, train_y, test_x, test_y = distributor(x, y, len_train_set=0.8)
 
-train_x, train_y = x[:len_train_set], y[:len_train_set]
-test_x, test_y = x[len_train_set:], y[len_train_set:]
-# train_x, train_y = pad_sequences(train_x, maxlen=300), np.array(train_y)
-# test_x, test_y = pad_sequences(test_x, maxlen=300), np.array(test_y)
-
+print(f"Длина тренировочного сета = {int(100 * len_train_set)}")
 print(f"Длина окна = {len_window}")
 print()
 
