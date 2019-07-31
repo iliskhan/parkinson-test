@@ -1,6 +1,5 @@
 import pandas as pd
 import time
-import cython
 
 # К1_20181207_110935.csv
 

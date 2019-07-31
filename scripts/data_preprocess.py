@@ -5,7 +5,8 @@ import pandas as pd
 
 from sklearn.utils import shuffle
 
-len_window = 150
+len_window = 100
+len_train_set = 0.85
 
 def distributor(x, y, len_train_set):
 
@@ -80,10 +81,10 @@ def data_collect(x, y, data_folder, label):
 		temp_path = os.path.join(data_folder, name)
 		file = pd.read_csv(temp_path, ';', names = ['times', 'parts', 'x','y','z'])
 
-		array = file[['x','y','z']].to_numpy()
-		temp_arr = np.linalg.norm(array, axis=-1, keepdims=True)
-		temp_arr = temp_arr.reshape(-1, 20)
-		
+		temp_arr = file[['x','y','z']].to_numpy()
+		#temp_arr = np.linalg.norm(array, axis=-1, keepdims=True)
+		temp_arr = temp_arr.reshape(-1, 20, 3)
+
 		x.append(temp_arr)
 		y.append(label)
 
@@ -109,9 +110,9 @@ x, y = sliding_window(x, y, len_window=len_window)
 
 quantity = label_check(y)
 
-train_x, train_y, test_x, test_y = distributor(x, y, len_train_set=0.8)
+train_x, train_y, test_x, test_y = distributor(x, y, len_train_set=len_train_set)
 
-print(f"Длина тренировочного сета = {int(100 * len_train_set)}")
+print(f"Длина тренировочного сета = {len(train_x)}")
 print(f"Длина окна = {len_window}")
 print()
 

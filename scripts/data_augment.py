@@ -2,8 +2,8 @@ import os
 import pandas as pd
 import filter
 
-origin_path = '../data/ctrl_test'
-destination_path = '../data/processed_ctrl'
+origin_path = '../data/prksn_test'
+destination_path = '../data/processed_prksn'
 
 for fname in os.listdir(origin_path):
     if fname.endswith('.csv'):
