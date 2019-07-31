@@ -3,6 +3,7 @@ import time
 
 # К1_20181207_110935.csv
 
+
 def filter(path):
     start_time = time.time()
     file = open(path, 'r')
