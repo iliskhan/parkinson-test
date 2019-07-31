@@ -2,11 +2,12 @@ from bson.json_util import dumps, loads
 import socket
 import tornado.web
 from io import BytesIO
+import numpy as np
 
 import pandas as pd
 
-from scripts.model import load_model, compile_model
-
+from scripts.model import load_model, compile_model, len_window
+from scripts.data_preprocess import sliding_window
 model = compile_model(load_model())
 
 
@@ -22,14 +23,15 @@ class DiagnoseHandler(CorsHandler):
         csv = BytesIO(self.request.body)
         file = pd.read_csv(csv, ';', names=['times', 'parts', 'x', 'y', 'z'])
 
-        temp_arr = file[['x', 'y', 'z']].to_numpy()
+        data = file[['x', 'y', 'z']].to_numpy()
         # temp_arr = np.linalg.norm(array, axis=-1, keepdims=True)
-        data = temp_arr.reshape(-1, 20, 3)
+        data = data.reshape(-1, 20, 3)
+        data = np.array([data[0:len_window]])
 
-        print(data)
-        result = model.predict({"inputs": data})
+        result = model.predict(data)
+        print(result)
 
-        self.write(dumps(result[0][0]))
+        self.write(str(result.tolist()))
         self.finish()
 
 

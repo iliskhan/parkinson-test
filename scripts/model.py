@@ -23,7 +23,7 @@ def load_model():
 def build_model():
     l2 = regularizers.l2(0.003)
 
-    x_input = Input(shape=(len_window, 20, 3))
+    x_input = Input(shape=(None, 20, 3))
 
     x = TimeDistributed(Flatten(), input_shape=(20, 3))(x_input)
 

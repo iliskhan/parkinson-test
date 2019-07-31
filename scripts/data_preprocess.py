@@ -91,38 +91,39 @@ def data_collect(x, y, data_folder, label):
     return x, y
 
 
-ctrl = '../data/processed_ctrl'
-prksn = '../data/processed_prksn'
+if __name__ == "__main__":
+    ctrl = '../data/processed_ctrl'
+    prksn = '../data/processed_prksn'
 
-x = []
-y = []
+    x = []
+    y = []
 
-x, y = data_collect(x, y, ctrl, 0)
-x, y = data_collect(x, y, prksn, 1)
+    x, y = data_collect(x, y, ctrl, 0)
+    x, y = data_collect(x, y, prksn, 1)
 
-x, y = np.array(x), np.array(y)
+    x, y = np.array(x), np.array(y)
 
-x, y = shuffle(x, y)
+    x, y = shuffle(x, y)
 
-x, y = sliding_window(x, y, len_window=len_window)
+    x, y = sliding_window(x, y, len_window=len_window)
 
-quantity = label_check(y)
+    quantity = label_check(y)
 
-train_x, train_y, test_x, test_y = distributor(x, y, len_train_set=len_train_set)
+    train_x, train_y, test_x, test_y = distributor(x, y, len_train_set=len_train_set)
 
-print(f"Длина тренировочного сета = {len(train_x)}")
-print(f"Длина окна = {len_window}")
-print()
+    print(f"Длина тренировочного сета = {len(train_x)}")
+    print(f"Длина окна = {len_window}")
+    print()
 
-print(f"Здоровых = {quantity[0]}")
-print(f"Больных = {quantity[1]}")
-print()
+    print(f"Здоровых = {quantity[0]}")
+    print(f"Больных = {quantity[1]}")
+    print()
 
-print('train_x', train_x.shape)
-print('train_y', label_check(train_y))
-print()
+    print('train_x', train_x.shape)
+    print('train_y', label_check(train_y))
+    print()
 
-print('test_x', test_x.shape)
-print('test_y', label_check(test_y))
+    print('test_x', test_x.shape)
+    print('test_y', label_check(test_y))
 
-np.save(data_file_name, np.array((train_x, train_y, test_x, test_y)))
+    np.save(data_file_name, np.array((train_x, train_y, test_x, test_y)))
